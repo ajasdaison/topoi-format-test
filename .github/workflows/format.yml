@@ -14,21 +14,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Setup Python, Node.js, and C++
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip clang-format
-          pip install black
-          npm install -g eslint prettier
+      - name: Grant execute permission to format script
+        run: chmod +x scripts/check_format.sh
 
-      - name: Check Formatting (Python, JavaScript, C++)
-        run: |
-          # Check Python formatting
-          black --check .
-
-          # Check JavaScript formatting
-          npx eslint "**/*.js" || exit 1
-          npx prettier --check "**/*.js" || exit 1
-
-          # Check C++ formatting
-          find . -name "*.cc" -o -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror || exit 1
+      - name: Run format check script
+        run: scripts/check_format.sh
