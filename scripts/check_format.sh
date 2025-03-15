@@ -13,35 +13,29 @@ echo "✅ Running format checks..."
 # Initialize error flag
 ERRORS=0
 
-# Check Python formatting using Ruff (black + isort)
-ruff format --check . || ERRORS=1
-if [ "$ERRORS" -ne 0 ]; then
-  echo "⚠️ Fixing Python formatting..."
-  ruff format .
-fi
+# Check and fix Python formatting using Ruff (black + isort alternative)
+echo "🔍 Checking Python formatting..."
+ruff check . || ERRORS=1
+echo "⚠️ Fixing Python formatting..."
+ruff format .
 
-# Check JavaScript formatting
+# Check and fix JavaScript formatting
+echo "🔍 Checking JavaScript formatting..."
 npx eslint "**/*.js" || ERRORS=1
-npx prettier --check "**/*.js" || ERRORS=1
+echo "⚠️ Fixing JavaScript formatting..."
+npx eslint --fix "**/*.js"
+npx prettier --write "**/*.js"
 
-if [ "$ERRORS" -ne 0 ]; then
-  echo "⚠️ Fixing JavaScript formatting..."
-  npx eslint --fix "**/*.js"
-  npx prettier --write "**/*.js"
-fi
-
-# Check C++ formatting
+# Check and fix C++ formatting
+echo "🔍 Checking C++ formatting..."
 find . -name "*.cc" -o -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror || ERRORS=1
+echo "⚠️ Fixing C++ formatting..."
+find . -name "*.cc" -o -name "*.cpp" -o -name "*.h" | xargs clang-format -i
 
-if [ "$ERRORS" -ne 0 ]; then
-  echo "⚠️ Fixing C++ formatting..."
-  find . -name "*.cc" -o -name "*.cpp" -o -name "*.h" | xargs clang-format -i
-fi
-
-# Exit with failure if any checks failed before fixing
+# Exit with failure if any checks failed
 if [ "$ERRORS" -ne 0 ]; then
   echo "❌ Formatting check failed! Some files were not formatted correctly. Changes have been applied."
   exit 1
 else
-  echo "🎉 Formatting check passed!"
+  echo "🎉 Formatting check passed! All files are properly formatted."
 fi
