@@ -1,0 +1,17 @@
+# ----------------- ADD FORMATTING CHECK STEP HERE -----------------
+- name: Check Formatting (Python, JavaScript, C++)
+  run: |
+    # Install formatters
+    pip install black
+    npm install -g eslint prettier
+    sudo apt-get install clang-format -y
+
+    # Check Python formatting (fails if not formatted)
+    black --check .
+
+    # Check JavaScript formatting (fails if not formatted)
+    npx eslint "**/*.js"
+    npx prettier --check "**/*.js"
+
+    # Check C++ formatting (fails if not formatted)
+    find . -name "*.cc" -o -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
