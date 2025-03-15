@@ -17,8 +17,7 @@
 #include "topoi/topoi.h"
 
 struct Options { uint64_t seed = 42;
-    topoi::index_t levels = 6;
-    topoi::index_t sample_moves = 10;
+    topoi::index_t levels = 6; topoi::index_t sample_moves = 10;
     template <class App>
     void setup_onto(App& app) {
         // clang-format off
@@ -28,7 +27,8 @@ struct Options { uint64_t seed = 42;
 };
 
 static void run(Options options) {
-    using namespace topoi;  std::mt19937_64 rng(options.seed);
+    using namespace topoi;
+    std::mt19937_64 rng(options.seed);
 
     index_t levels = options.levels;
     for (size_t i = 0; i < BOARD_CELLS; i++) {
