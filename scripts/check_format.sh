@@ -32,47 +32,61 @@ ERRORS=0
 
 function topoi-check-sh {
   echo "🔍 Checking Shell formatting..."
+  set +e
   shfmt -w -i 2 -ci -bn -sr ${SH_SOURCES[@]}
+  if [ $? -ne 0 ]; then ERRORS=1; fi
+  set -e
 }
 
 function topoi-check-python {
   echo "🔍 Checking Python formatting..."
-  ruff check --fix ${PYTHON_SOURCES[@]} || ERRORS=1
+  set +e
+  ruff check --fix ${PYTHON_SOURCES[@]}
+  if [ $? -ne 0 ]; then ERRORS=1; fi
   echo "⚠️ Fixing Python formatting..."
   ruff format ${PYTHON_SOURCES[@]}
+  set -e
 }
 
 function topoi-check-clang-format {
   echo "🔍 Checking C++ formatting..."
-  python3 run-clang-format.py --style file -r ${CPP_SOURCES[@]} || ERRORS=1
+  set +e
+  python3 run-clang-format.py --style file -r ${CPP_SOURCES[@]}
+  if [ $? -ne 0 ]; then ERRORS=1; fi
   echo "⚠️ Fixing C++ formatting..."
   python3 run-clang-format.py --style file -r ${CPP_SOURCES[@]} -i
+  set -e
 }
 
 function topoi-check-clang-tidy {
   echo "🔍 Running Clang-Tidy..."
   mkdir -p build
-  ARGS=(
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=on
-    -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-  )
-
-  cmake -B build -S . "${ARGS[@]}"
   set +e
-  FILES=$(find ${CPP_SOURCES[@]} -type f)
-  run-clang-tidy -export-fixes build/clang-tidy.topoi.yml -fix -format -p build -header-filter="$PWD/src" ${FILES[@]}
-  CHECK_STATUS=$?
+  FILES=$(find ${CPP_SOURCES[@]} -type f -name "*.cpp" -o -name "*.h")
+  
+  if [ -z "$FILES" ]; then
+    echo "✅ No C++ files found for Clang-Tidy."
+    return 0
+  fi
+
+  for file in $FILES; do
+    clang-tidy "$file" --fix --format
+    if [ $? -ne 0 ]; then ERRORS=1; fi
+  done
+
   git diff
   set -e
-  return $CHECK_STATUS
 }
 
 function topoi-check-javascript {
   echo "🔍 Checking JavaScript formatting..."
-  npx eslint "${JS_SOURCES[@]}/**/*.js" || ERRORS=1
+  set +e
+  npx eslint "${JS_SOURCES[@]}/**/*.js"
+  if [ $? -ne 0 ]; then ERRORS=1; fi
   echo "⚠️ Fixing JavaScript formatting..."
   npx eslint --fix "${JS_SOURCES[@]}/**/*.js"
   npx prettier --write "${JS_SOURCES[@]}/**/*.js"
+  set -e
 }
 
 # Run all checks
