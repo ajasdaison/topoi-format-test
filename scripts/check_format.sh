@@ -5,7 +5,7 @@ set -eo pipefail
 # Directories to check
 CPP_SOURCES=(
   topoi
-  app
+  engine/app
 )
 
 PYTHON_SOURCES=(
