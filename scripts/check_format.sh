@@ -44,9 +44,9 @@ function topoi-check-python {
 
 function topoi-check-clang-format {
   echo "🔍 Checking C++ formatting..."
-  python3 tools/run-clang-format.py --style file -r ${CPP_SOURCES[@]} || ERRORS=1
+  python3 run-clang-format.py --style file -r ${CPP_SOURCES[@]} || ERRORS=1
   echo "⚠️ Fixing C++ formatting..."
-  python3 tools/run-clang-format.py --style file -r ${CPP_SOURCES[@]} -i
+  python3 run-clang-format.py --style file -r ${CPP_SOURCES[@]} -i
 }
 
 function topoi-check-clang-tidy {
