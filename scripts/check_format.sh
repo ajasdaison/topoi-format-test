@@ -13,7 +13,6 @@ PYTHON_SOURCES=(
 
 SH_SOURCES=(
   scripts
-  tools
 )
 
 JS_SOURCES=(
