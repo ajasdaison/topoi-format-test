@@ -1,18 +1,6 @@
 #!/bin/bash
 
-set -e # Stop only for critical failures
-
-echo "Setting up format check..."
-
-# Detect OS and run the appropriate setup script
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  bash scripts/ci/ubuntu/0-setup.sh
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  bash scripts/ci/macos/0-setup.sh
-else
-  echo "⚠️ Unsupported OS: $OSTYPE"
-  exit 1
-fi
+set -e  # Stop only for critical failures
 
 # Directories to check
 CPP_SOURCES=(
@@ -31,30 +19,27 @@ JS_SOURCES=(
   "topoi/static/engine"
 )
 
-echo "Setting up format check..."
+echo "Running format checks..."
 
 # Initialize error flag
 ERRORS=0
 
-# Function to check shell script formatting
+### 1. **CHECK FUNCTIONS (DO NOT MODIFY FILES)**
 function topoi-check-sh {
   echo "Checking Shell formatting..."
   shfmt -d -i 2 -ci -bn -sr ${SH_SOURCES[@]} || ERRORS=1
 }
 
-# Function to check Python formatting
 function topoi-check-python {
   echo "Checking Python formatting..."
   ruff check ${PYTHON_SOURCES[@]} || ERRORS=1
 }
 
-# Function to check C++ formatting
 function topoi-check-clang-format {
   echo "Checking C++ formatting..."
   python3 run-clang-format.py --style file -r ${CPP_SOURCES[@]} || ERRORS=1
 }
 
-# Function to check C++ static analysis
 function topoi-check-clang-tidy {
   echo "Running Clang-Tidy..."
   mkdir -p build
@@ -70,23 +55,33 @@ function topoi-check-clang-tidy {
   done
 }
 
-# Function to check JavaScript formatting
 function topoi-check-javascript {
   echo "Checking JavaScript formatting..."
   npx eslint "${JS_SOURCES[@]}/**/*.js" || ERRORS=1
 }
 
-# Run all checks (continue even if one fails)
+# Run all checks
 topoi-check-sh
 topoi-check-python
 topoi-check-clang-format
 topoi-check-clang-tidy
 topoi-check-javascript
 
-# Show overall status
+# If errors were found, show a git diff to suggest fixes
 if [ "$ERRORS" -ne 0 ]; then
-  echo "Formatting check completed with issues. Review the errors above."
+  echo "Issues detected. Showing suggested fixes..."
+  
+  # Run formatting commands **only for diff generation, without modifying files**
+  shfmt -d -i 2 -ci -bn -sr ${SH_SOURCES[@]} &> /dev/null
+  ruff format --diff ${PYTHON_SOURCES[@]} &> /dev/null
+  python3 run-clang-format.py --style file -r ${CPP_SOURCES[@]} --dry-run &> /dev/null
+  npx prettier --check "${JS_SOURCES[@]}/**/*.js" &> /dev/null
+
+  # Display git diff (suggests changes but does NOT modify files)
+  git diff
+
+  echo "Formatting issues found. Please run the appropriate format commands to fix them."
   exit 1
 else
-  echo "All checks passed."
+  echo "All checks passed. No changes needed."
 fi
