@@ -1,17 +1,21 @@
-# ----------------- ADD FORMATTING CHECK STEP HERE -----------------
-- name: Check Formatting (Python, JavaScript, C++)
-  run: |
-    # Install formatters
-    pip install black
-    npm install -g eslint prettier
-    sudo apt-get install clang-format -y
+name: Formatting Check
 
-    # Check Python formatting (fails if not formatted)
-    black --check .
+on:
+  push:
+    branches:
+      - main
 
-    # Check JavaScript formatting (fails if not formatted)
-    npx eslint "**/*.js"
-    npx prettier --check "**/*.js"
+jobs:
+  check-formatting:
+    runs-on: ubuntu-latest
 
-    # Check C++ formatting (fails if not formatted)
-    find . -name "*.cc" -o -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up environment
+        #run: bash scripts/ci/ubuntu/0-setup.sh  # This runs only in CI on Ubuntu
+        run: bash scripts/ci/macos/0-setup.sh
+
+      - name: Run format check script
+        run: scripts/check_format.sh
